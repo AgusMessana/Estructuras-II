@@ -18,5 +18,5 @@ dropWhile' p (x:xs) | p x       = dropWhile' p xs
 Definir la funcón span que divide una lista entre el prefijo más grande que cumple un predicado y el resto de la lista.
 -}
 span' :: (a->Bool) -> [a] -> ([a], [a])
-span' p [] = ([], [])
+span' p [] = ([], []) -- se puede obviar porque ya las funciones anteriores lo contemplarían
 span' p xs = (takeWhile' p xs, dropWhile' p xs)
