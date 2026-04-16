@@ -20,7 +20,7 @@ moverFin (Linea izq pos []) = Linea izq pos []
 moverFin (Linea izq pos der) = Linea (izq ++ der) (length izq + length der) []
 
 insertar :: Int -> Linea -> Linea
-insertar x (Linea [] pos der) = Linea (x : []) (pos + 1) der
+insertar x (Linea [] pos der) = Linea [x] (pos + 1) der
 insertar x (Linea izq pos der) = Linea (izq ++ [x]) (pos + 1) der
 
 borrar :: Linea -> Linea

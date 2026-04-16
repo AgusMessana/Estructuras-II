@@ -1,8 +1,8 @@
 -- Ejercicio 3
 data CList a = EmptyCL | CUnit a | Consnoc a (CList a) a
-EmptyCL :: CList a
-CUnit :: a -> CList a
-Consnoc :: a -> CList a -> a -> CList a
+--EmptyCL :: CList a
+--CUnit :: a -> CList a
+--Consnoc :: a -> CList a -> a -> CList a
 
 -- a) iv)
 tailCL :: CList a -> CList a
@@ -24,18 +24,18 @@ Ejemplos
 [1, 2, 3] -> [[], [1], [1, 2], [1, 2, 3]]
 [1, 2, 3, 4] -> [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]]
 -}
-inits :: Clist a -> Clist (Clist a)
+inits :: CList a -> CList (CList a)
 inits EmptyCL = CUnit EmptyCL
 inits (CUnit x) = Consnoc EmptyCL EmptyCL (CUnit x)
 inits c@(Consnoc x l y) = Consnoc EmptyCL m c -- El @ es para darle un nombre a algo
     where m = mapPrepend (inits l) x
 
-mapPrepend :: CList (CList a) -> a -> Clist (CList a)
+mapPrepend :: CList (CList a) -> a -> CList (CList a)
 mapPrepend EmptyCL x = EmptyCL
 mapPrepend (CUnit l) x = CUnit (consCL x l)
 mapPrepend (Consnoc l1 ls l2) x = Consnoc (consCL x l1) (mapPrepend ls x) (consCL x l2)
 
 consCL :: a -> CList a -> CList a
 consCL x EmptyCL = CUnit x
-consCL x (CUnit y) = Consnoc (x EmptyCL y)
+consCL x (CUnit y) = Consnoc x EmptyCL y
 consCL x (Consnoc a l b) = Consnoc x (consCL a l) b
