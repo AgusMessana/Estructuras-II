@@ -1,4 +1,8 @@
-{- 
+module Ej_1_3 where
+
+import Data.List
+
+{-
 3) Definir una función que determine si un año es bisiesto o no, de
 acuerdo a la siguiente definición:
 
@@ -17,7 +21,8 @@ esDiv4 :: Int -> Bool
 esDiv4 x = mod x 4 == 0
 
 esBisiesto :: Int -> Bool
-esBisiesto x | esDiv400 x = True
-             | esDiv100 x = False
-             | esDiv4 x = True
-             | otherwise = False
+esBisiesto x
+  | esDiv400 x = True
+  | esDiv100 x = False
+  | esDiv4 x = True
+  | otherwise = False

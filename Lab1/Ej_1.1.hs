@@ -1,4 +1,5 @@
-module Lab01 where
+module Ej_1_1 where
+
 import Data.List
 
 {-
@@ -11,20 +12,20 @@ not' b = case b of
   False -> True
 
 -- b)
-init' [x]         =  []
-init' (x:xs)      =  x : init' xs
-init' []          =  error "empty list"
+init' [x] = []
+init' (x : xs) = x : init' xs
+init' [] = error "empty list"
 
 -- c)
-length' []        =  0
-length' (_:l)     =  1 + length' l
+length' [] = 0
+length' (_ : l) = 1 + length' l
 
 -- d)
 list123 = 1 : (2 : (3 : []))
 
 -- e)
-[]     ++! ys = ys
-(x:xs) ++! ys = x : xs ++! ys
+[] ++! ys = ys
+(x : xs) ++! ys = x : xs ++! ys
 
 -- f)
 addToTail x xs = map (++ [x]) (tail xs)
@@ -35,4 +36,4 @@ listmin xs = head (sort xs)
 -- h) (*)
 smap f [] = []
 smap f [x] = [f x]
-smap f (x:xs) = f x : smap f xs
+smap f (x : xs) = f x : smap f xs
