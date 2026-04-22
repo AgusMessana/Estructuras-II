@@ -1,4 +1,4 @@
-module Ejs_P3 where
+module Practica3 where
 
 import Distribution.Compiler (PerCompilerFlavor (PerCompilerFlavor))
 
