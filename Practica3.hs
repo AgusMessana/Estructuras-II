@@ -3,8 +3,9 @@ module Practica3 where
 import Distribution.Compiler (PerCompilerFlavor (PerCompilerFlavor))
 
 -- =============================================================================
--- # Ejercicio 1
+-- # Ejercicio 1: definir un tipo Color en el modelo RGB y una función mezclar que permita obtener el promedio componente a componente entre dos colores.
 -- =============================================================================
+
 data Color = Color Float Float Float deriving (Show)
 
 mezclar :: Color -> Color -> Color
@@ -12,8 +13,9 @@ mezclar (Color r1 g1 b1) (Color r2 g2 b2) =
   Color ((r1 + r2) / 2) ((g1 + g2) / 2) ((b1 + b2) / 2)
 
 -- =============================================================================
--- # Ejercicio 2
+-- # Ejercicio 2: supongamos que una Línea es una secuencia de caracteres c1, c2, ..., cn junto con una posicion p, siendo 0 <= p <= n, llamada cursor (consideraremos al cursor a la derecha de un carácter que será borrado o insertado, es decir, como el cursor de la mayora de los editores). Se requieren las siguientes operaciones sobre líneas:
 -- =============================================================================
+
 data Linea = Linea [Char] Int [Char] deriving (Show)
 
 vacia :: Linea
@@ -44,11 +46,13 @@ borrar (Linea [] pos der) = Linea [] pos der
 borrar (Linea izq pos der) = Linea (init izq) (pos - 1) der
 
 -- =============================================================================
--- # Ejercicio 3
+-- # Ejercicio 3: dado el tipo de datos:
 -- =============================================================================
+
 data CList a = EmptyCL | CUnit a | Consnoc a (CList a) a deriving (Show)
 
--- ### Inciso a)
+-- ### Inciso a): implementar las operaciones de este tipo algebráico
+
 headCL :: CList a -> a
 headCL (CUnit x) = x
 headCL (Consnoc x l y) = x
@@ -57,10 +61,11 @@ tailCL :: CList a -> CList a
 tailCL (CUnit x) = EmptyCL -- Porque la cola de una lista de un solo elemento es la lista vacía
 tailCL (Consnoc x l y) = appendElem l y
 
--- Definimos appendElem que le agrega un elemnto al final a una lista
+-- Definimos appendElem que le agrega un elemento al final a una lista.
+
 appendElem :: CList a -> a -> CList a
-appendElem EmptyCL x = CUnit x -- A la lista vacía le agrego un solo elemento. Queda una lista de un solo elemento
-appendElem (CUnit y) x = Consnoc y EmptyCL x -- La del medio es vacía porque tengo dos elementos
+appendElem EmptyCL x = CUnit x -- A la lista vacía le agrego un solo elemento. Queda una lista de un solo elemento.
+appendElem (CUnit y) x = Consnoc y EmptyCL x -- La del medio es vacía porque tengo dos elementos.
 appendElem (Consnoc a l b) x = Consnoc a (appendElem l b) x
 
 isEmptyCL :: CList a -> Bool
@@ -78,13 +83,14 @@ isCUnit :: CList a -> Bool
 isCUnit (CUnit x) = True
 isCUnit _ = False
 
--- ### Inciso b
+-- ### Inciso b): definir una función reverseCL que toma una CList y devuelve su inversa.
+
 reverseCL :: CList a -> CList a
 reverseCL EmptyCL = EmptyCL
 reverseCL (CUnit x) = CUnit x
 reverseCL (Consnoc x l y) = Consnoc y (reverseCL l) x
 
--- ### Inciso c
+-- ### Inciso c): definir una función inits que toma una CList y devuelve una CList con todos los posibles inicios de la CList.
 {-
 Ejemplos
 [] -> [[]]
@@ -93,10 +99,11 @@ Ejemplos
 [1, 2, 3] -> [[], [1], [1, 2], [1, 2, 3]]
 [1, 2, 3, 4] -> [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]]
 -}
+
 inits :: CList a -> CList (CList a)
 inits EmptyCL = CUnit EmptyCL
 inits (CUnit x) = Consnoc EmptyCL EmptyCL (CUnit x)
-inits c@(Consnoc x l y) = Consnoc EmptyCL m c -- El @ es para darle un nombre a algo
+inits c@(Consnoc x l y) = Consnoc EmptyCL m c -- El @ da un nombre a algo
   where
     m = mapPrepend (inits l) x
 
@@ -110,7 +117,7 @@ consCL x EmptyCL = CUnit x
 consCL x (CUnit y) = Consnoc x EmptyCL y
 consCL x (Consnoc a l b) = Consnoc x (consCL a l) b
 
--- ### Inciso d
+-- ### Inciso d): definir una función lasts que toma una CList y devuelve una CList con todas las posibles terminaciones de la CList.
 {-
 Ejemplos
 [] -> [[]]
@@ -119,6 +126,7 @@ Ejemplos
 [1, 2, 3] -> [[], [3], [2, 3], [1, 2, 3]]
 [1, 2, 3, 4] -> [[], [4], [3, 4], [2, 3, 4], [1, 2, 3, 4]]
 -}
+
 lasts :: CList a -> CList (CList a)
 lasts EmptyCL = CUnit EmptyCL
 lasts (CUnit x) = Consnoc EmptyCL EmptyCL (CUnit x)
@@ -136,7 +144,8 @@ consFCL EmptyCL y = CUnit y
 consFCL (CUnit x) y = Consnoc x EmptyCL y
 consFCL (Consnoc x l z) y = Consnoc x (consFCL l z) y
 
--- ### Inciso e
+-- ### Inciso e): definir una función concatCL que toma una CList de CList y devuelve la CList con todas ellas concatenadas.
+
 concatCL :: CList (CList a) -> CList a
 concatCL EmptyCL = EmptyCL
 concatCL (CUnit l) = l
@@ -148,8 +157,9 @@ consLCL (CUnit x) l2 = consCL x l2
 consLCL (Consnoc x l1 y) l2 = consLCL (consCL x l1) (consCL y l2)
 
 -- =============================================================================
--- # Ejercicio 4
+-- # Ejercicio 4: definir un evaluador eval :: Exp -> Int para el siguiente tipo algebráico:
 -- =============================================================================
+
 data Exp = Lit Int | Add Exp Exp | Sub Exp Exp | Prod Exp Exp | Div Exp Exp deriving (Show)
 
 eval :: Exp -> Int
@@ -162,7 +172,9 @@ eval (Div e1 e2) = div (eval e1) (eval e2)
 -- =============================================================================
 -- # Ejercicio 5
 -- =============================================================================
--- ### Inciso a
+
+-- ### Inciso a): definir una función parseRPN :: String -> Exp que, dado un string que representa una expresion escrita en RPN, construya un elemento del tipo Exp presentado en el ejercicio 4 correspondiente a la expresión dada.
+
 procesarToken :: [Exp] -> String -> [Exp]
 procesarToken (e2 : e1 : pila) "+" = Add e1 e2 : pila
 procesarToken (e2 : e1 : pila) "-" = Sub e1 e2 : pila
@@ -176,7 +188,8 @@ parseRPN txt =
       pilaFinal = foldl procesarToken [] tokens
    in head pilaFinal
 
--- ### Inciso b
+-- ### Inciso b): definir una función evalRPN :: String -> Int para evaluar expresiones aritméticas escritas en RPN.
+
 evalRPN :: String -> Int
 evalRPN txt =
   let formula = parseRPN txt
@@ -185,10 +198,11 @@ evalRPN txt =
 -- =============================================================================
 -- # Ejercicio 6
 -- =============================================================================
--- ### Inciso a
+
+-- ### Inciso a): considerar el evaluador eval :: Exp Int del ejercicio 4. ¿Cómo maneja los errores de division por 0?
 -- Al momento de dividir por 0, se lanza una excepción de que no se puede dividir por 0.
 
--- ### Inciso b
+-- ### Inciso b): definir un evaluador seval :: Exp -> Maybe Int para controlar los errores de división por 0.
 
 seval :: Exp -> Maybe Int
 seval (Lit n) = Just n
