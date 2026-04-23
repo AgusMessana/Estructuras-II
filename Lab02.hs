@@ -33,9 +33,9 @@ inorder (Node izq der) = inorder izq ++ inorder der
 -- Ejercicio 2: dada las siguientes representaciones de árboles generales y de árboles binarios (con información en los nodos):
 -- =============================================================================
 
-data GTree a = EG | NodeG a [GTree a]
+data GTree a = EG | NodeG a [GTree a] deriving (Show)
 
-data BinTree a = EB | NodeB (BinTree a) a (BinTree a)
+data BinTree a = EB | NodeB (BinTree a) a (BinTree a) deriving (Show)
 
 {-
 ### Inciso a): definir una función g2bt que dado un árbol nos devuelva un árbol binario de la siguiente manera:
@@ -80,8 +80,6 @@ g2bt (NodeG dato hijos) = NodeB (procesarHermanos hijos) dato EB
 -- # Ejercicio 3: utilizando el tipo de árboles binarios definido en el ejercicio anterior, definir las siguientes funciones:
 -- =============================================================================
 
--- data BinTree a = EB | NodeB (BinTree a) a (BinTree a)
-
 {-
 ### Inciso a): dcn, que dado un árbol devuelva la lista de los elementos que se encuentran en el nivel más profundo que contenga la máxima cantidad de elementos posibles.
 Por ejemplo, sea t:
@@ -97,12 +95,6 @@ dcn :: BinTree a -> [a]
 dcn EB = []
 dcn arbol = buscarMayor (reverse (zip [0 ..] (porNiveles arbol)))
 
-buscarMayor :: [(Int, [a])] -> [a]
-buscarMayor [] = []
-buscarMayor ((nivel, nodos) : resto)
-  | 2 ^ nivel == length nodos = nodos
-  | otherwise = buscarMayor resto
-
 porNiveles :: BinTree a -> [[a]]
 porNiveles EB = []
 porNiveles (NodeB izq dato der) = [dato] : juntarNiveles (porNiveles izq) (porNiveles der)
@@ -112,18 +104,33 @@ juntarNiveles [] ys = ys
 juntarNiveles xs [] = xs
 juntarNiveles (x : xs) (y : ys) = (x ++ y) : juntarNiveles xs ys
 
-{-
-### Inciso b): maxn, que dado un árbol devuelva la profundidad del nivel completo más profundo.
-Por ejemplo, maxn t = 2
--}
+buscarMayor :: [(Int, [a])] -> [a]
+buscarMayor [] = []
+buscarMayor ((nivel, nodos) : resto)
+  | 2 ^ nivel == length nodos = nodos
+  | otherwise = buscarMayor resto
+
+-- ### Inciso b): maxn, que dado un árbol devuelva la profundidad del nivel completo más profundo.
+-- Por ejemplo, maxn t = 2
 
 maxn :: BinTree a -> Int
-maxn = undefined
+maxn EB = 0
+maxn arbol = buscarMayor1 (reverse (zip [1 ..] (porNiveles arbol)))
 
-{-
-### Inciso c): podar, que elimine todas las ramas necesarias para transformar el árbol en un árbol completo con la máxima altura posible.
-Por ejemplo, podar t = NodeB (NodeB EB 2 EB) 1 (NodeB EB 3 EB)
--}
+buscarMayor1 :: [(Int, [a])] -> Int
+buscarMayor1 [] = 0
+buscarMayor1 ((nivel, nodos) : resto)
+  | 2 ^ (nivel - 1) == length nodos = nivel
+  | otherwise = buscarMayor1 resto
+
+-- ### Inciso c): podar, que elimine todas las ramas necesarias para transformar el árbol en un árbol completo con la máxima altura posible.
+-- Por ejemplo, podar t = NodeB (NodeB EB 2 EB) 1 (NodeB EB 3 EB)
 
 podar :: BinTree a -> BinTree a
-podar = undefined
+podar EB = EB
+podar arbol = podarAux arbol (maxn arbol)
+
+podarAux :: BinTree a -> Int -> BinTree a
+podarAux EB _ = EB
+podarAux _ 0 = EB
+podarAux (NodeB izq x der) p = NodeB (podarAux izq (p - 1)) x (podarAux der (p - 1))
