@@ -116,4 +116,5 @@ insert x t = makeBlack (ins x t)
 -- # Ejercicio 5:
 -- =============================================================================
 
+
 -- con paralelizacion dedinir un operador de paralelelismo a ||| b = (a, b)
