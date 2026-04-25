@@ -1,4 +1,4 @@
-import Text.XHtml (td)
+module Practica4 where
 
 -- =============================================================================
 -- # Ejercicio 1: fefinir las siguientes funciones de manera que se puedan compartir la mayor cantidad posible de elementos de los árboles creados.
@@ -84,7 +84,36 @@ member' arbol x = auxiliarMember arbol x Nothing
 -- =============================================================================
 -- # Ejercicio 4
 -- =============================================================================
+data Color = R | B
+
+data RBT a = E | T Color (RBT a) a (RBT a)
 
 -- ### Inciso a): definir dos funciones lbalance y rbalance que chequeen que el invariante 1 se cumple en los subárboles izquierdo y derecho respectivamente.
+
+lbalance :: Color -> RBT a -> a -> RBT a -> RBT a
+lbalance B (T R (T R a x b) y c) z d = T R (T B a x b) y (T B c z d)
+lbalance B (T R a x (T R b y c)) z d = T R (T B a x b) y (T B c z d)
+lbalance c l a r = T c l a r
+
+rbalance :: Color -> RBT a -> a -> RBT a -> RBT a
+rbalance B a x (T R (T R b y c) z d) = T R (T B a x b) y (T B c z d)
+rbalance B a x (T R b y (T R c z d)) = T R (T B a x b) y (T B c z d)
+rbalance c l a r = T c l a r
+
+-- ### Inciso b): reemplazar las llamadas a balance en ins por llamadas a alguna de estas dos funciones.
+insert :: (Ord a) => a -> RBT a -> RBT a
+insert x t = makeBlack (ins x t)
+  where
+    ins x E = T R E x E
+    ins x (T c l y r)
+      | x < y = lbalance c (ins x l) y r
+      | x > y = rbalance c l y (ins x r)
+      | otherwise = T c l y r
+    makeBlack E = E
+    makeBlack (T _ l x r) = T B l x r
+
+-- =============================================================================
+-- # Ejercicio 5:
+-- =============================================================================
 
 -- con paralelizacion dedinir un operador de paralelelismo a ||| b = (a, b)
