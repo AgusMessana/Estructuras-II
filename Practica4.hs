@@ -1,5 +1,7 @@
 module Practica4 where
 
+import Text.XHtml (h2)
+
 -- =============================================================================
 -- # Ejercicio 1: fefinir las siguientes funciones de manera que se puedan compartir la mayor cantidad posible de elementos de los árboles creados.
 -- =============================================================================
@@ -116,5 +118,101 @@ insert x t = makeBlack (ins x t)
 -- # Ejercicio 5:
 -- =============================================================================
 
+-- ### Inciso 1): definir un tipo de datos que represente árboles 1-2-3.
+data Arbol123 a
+  = Hoja123
+  | Node2 (Arbol123 a) a (Arbol123 a)
+  | Node3 (Arbol123 a) a (Arbol123 a) a (Arbol123 a)
+  | Node4 (Arbol123 a) a (Arbol123 a) a (Arbol123 a) a (Arbol123 a)
 
--- con paralelizacion dedinir un operador de paralelelismo a ||| b = (a, b)
+--- ### Inciso 2): definir una función que transforme red-black trees en árboles 1-2-3. Paralelizar cuando sea posible.
+(|||) :: a -> b -> (a, b)
+x ||| y = (x, y)
+
+convertir :: RBT a -> Arbol123 a
+convertir E = Hoja123
+convertir (T B (T R izq1 x der1) y (T R izq2 z der2)) =
+  let (ni1, nd1) = convertir izq1 ||| convertir der1
+      (ni2, nd2) = convertir izq2 ||| convertir der2
+   in Node4 ni1 x nd1 y ni2 z nd2
+convertir (T B (T R izq1 x der1) y der) =
+  let (ni1, nd1) = convertir izq1 ||| convertir der1
+      nuevoDer = convertir der
+   in Node3 ni1 x nd1 y nuevoDer
+convertir (T B izq x (T R izq2 y der2)) =
+  let (ni2, nd2) = convertir izq2 ||| convertir der2
+      nuevoIzq = convertir izq
+   in Node3 nuevoIzq x ni2 y nd2
+convertir (T B izq a der) =
+  let (nuevoIzq, nuevoDer) = convertir izq ||| convertir der
+   in Node2 nuevoIzq a nuevoDer
+
+-- =============================================================================
+-- # Ejercicio 6: definir una función que cree un leftist heap a partir de una lista, convirtiendo cada elemento de la lista en un heap de un solo elemento y aplicando la función merge hasta obtener un solo heap. Aplicar la función merge n veces, donde n es la longitud de la lista que recibe como argumento la función.
+-- =============================================================================
+
+data LeftistHeap a = LHoja | LNodo Int (LeftistHeap a) a (LeftistHeap a)
+
+fromList :: (Ord a) => [a] -> LeftistHeap a
+fromList [] = LHoja
+fromList (x : xs) = insert' x (fromList xs)
+
+rank :: LeftistHeap a -> Int
+rank LHoja = 0
+rank (LNodo r izq a der) = r
+
+makeT :: a -> LeftistHeap a -> LeftistHeap a -> LeftistHeap a
+makeT x h1 h2 =
+  if rank h1 >= rank h2
+    then LNodo newRank1 h1 x h2
+    else LNodo newRank2 h2 x h1
+  where
+    newRank1 = 1 + rank h2
+    newRank2 = 1 + rank h1
+
+merge' :: (Ord a) => LeftistHeap a -> LeftistHeap a -> LeftistHeap a
+merge' heap LHoja = heap
+merge' LHoja heap = heap
+merge' h1@(LNodo r1 izq1 x der1) h2@(LNodo r2 izq2 y der2)
+  | x <= y = makeT x izq1 (merge' der1 h2)
+  | otherwise = makeT y izq2 (merge' der2 h1)
+
+insert' :: (Ord a) => a -> LeftistHeap a -> LeftistHeap a
+insert' x heap = merge' (LNodo 1 LHoja x LHoja) heap
+
+-- =============================================================================
+-- # Ejercicio 7: definir las siguientes funciones para un pairing heap
+-- =============================================================================
+
+data PHeaps a = Empty | Root a [PHeaps a]
+
+-- ### Inciso a): determinar si un árbol es un pairing heap, es decir, cumple con el invariante de heap.
+isPHeap :: (Ord a) => PHeaps a -> Bool
+isPHeap Empty = True
+isPHeap (Root x hijos) =
+  all check hijos && all isPHeap hijos
+  where
+    check Empty = True
+    check (Root y _) = x <= y
+
+-- ### Inciso b): unir dos pairing heap. Para ello, comparar las raíces de ambos árboles y elegir la menor como raíz del nuevo heap, agregar el árbol con mayor raíz como hijo de éste.
+merge :: (Ord a) => PHeaps a -> PHeaps a -> PHeaps a
+merge Empty heap = heap
+merge heap Empty = heap
+merge h1@(Root x hijos1) h2@(Root y hijos2)
+  | x <= y = Root x (h2 : hijos1)
+  | otherwise = Root y (h1 : hijos2)
+
+-- ### Inciso c): insertar un elemento en un pairing heap.
+insert'' :: (Ord a) => PHeaps a -> a -> PHeaps a
+insert'' Empty x = Root x []
+insert'' heap x = merge (Root x []) heap
+
+-- ### Inciso d): dada una lista de pairing heaps, construir otro con los elementos del mismo.
+concatHeaps :: (Ord a) => [PHeaps a] -> PHeaps a
+concatHeaps listaDeHeaps = foldr merge Empty listaDeHeaps
+
+-- ### Inciso e): dado un pairing heap, devolver, si el árbol no es vacío, un par con el menor elemento y un pairing heap sin éste elemento, o Nothing en otro caso.
+delMin :: (Ord a) => PHeaps a -> Maybe (a, PHeaps a)
+delMin Empty = Nothing
+delMin (Root x hijos) = Just (x, concatHeaps hijos)
