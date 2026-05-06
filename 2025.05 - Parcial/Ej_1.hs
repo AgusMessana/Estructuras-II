@@ -22,11 +22,11 @@ auxIsBST (N a x izq der) piso techo = respetarPiso a piso && respetarTecho a tec
 
 respetarPiso :: (Ord a) => a -> Maybe a -> Bool
 respetarPiso _ Nothing = True
-respetarPiso valor (Just p) = valor >= p
+respetarPiso valor (Just p) = valor > p
 
 respetarTecho :: (Ord a) => a -> Maybe a -> Bool
 respetarTecho _ Nothing = True
-respetarTecho valor (Just t) = valor < t
+respetarTecho valor (Just t) = valor <= t
 
 -- ### Inciso c): dado un valor de tipo Scapegoat a determina si es un Scapegoat tree.
 isScapegoatTree :: (Ord a) => Scapegoat a -> Bool

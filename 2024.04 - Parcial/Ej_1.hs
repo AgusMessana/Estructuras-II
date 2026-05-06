@@ -18,11 +18,11 @@ auxIsBST (N _ v izq der) piso techo = checkPiso v piso && checkTecho v techo && 
 
 checkPiso :: (Ord a) => a -> Maybe a -> Bool
 checkPiso _ Nothing = True
-checkPiso v (Just p) = v >= p
+checkPiso v (Just p) = v > p
 
 checkTecho :: (Ord a) => a -> Maybe a -> Bool
 checkTecho _ Nothing = True
-checkTecho v (Just t) = v < t
+checkTecho v (Just t) = v <= t
 
 -- ### Inciso b): dado un valor de tipo AAtree a determine si es un AAtree
 isAAtree :: (Ord a) => AAtree a -> Bool
