@@ -83,3 +83,20 @@ insert x (N a s izq der)
        in if 3 * (size der + 1) <= 2 * (s + 1)
             then nuevoSubDer
             else rebuild nuevoSubDer
+
+insert' :: (Ord a) => a -> Scapegoat a -> Scapegoat a
+insert' x E = N x 1 E E
+insert' x (N a n izq der)
+  | x <= a =
+      if 3 * size nuevoIzq <= 2 * (n + 1)
+        then nodoIzq
+        else rebuild nodoIzq
+  | otherwise =
+      if 3 * size nuevoDer <= 2 * (n + 1)
+        then nodoDer
+        else rebuild nodoDer
+  where
+    nuevoIzq = insert x izq
+    nuevoDer = insert x der
+    nodoIzq = N a (n + 1) nuevoIzq der
+    nodoDer = N a (n + 1) izq nuevoDer
