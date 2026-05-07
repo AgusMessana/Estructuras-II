@@ -88,15 +88,15 @@ insert' :: (Ord a) => a -> Scapegoat a -> Scapegoat a
 insert' x E = N x 1 E E
 insert' x (N a n izq der)
   | x <= a =
-      if 3 * size nuevoIzq <= 2 * (n + 1)
-        then nodoIzq
-        else rebuild nodoIzq
+      if 3 * size nuevoHijoIzq <= 2 * (n + 1)
+        then arbolTentativoIzq
+        else rebuild arbolTentativoIzq
   | otherwise =
-      if 3 * size nuevoDer <= 2 * (n + 1)
-        then nodoDer
-        else rebuild nodoDer
+      if 3 * size nuevoHijoDer <= 2 * (n + 1)
+        then arbolTentativoDer
+        else rebuild arbolTentativoDer
   where
-    nuevoIzq = insert x izq
-    nuevoDer = insert x der
-    nodoIzq = N a (n + 1) nuevoIzq der
-    nodoDer = N a (n + 1) izq nuevoDer
+    nuevoHijoIzq = insert x izq
+    nuevoHijoDer = insert x der
+    arbolTentativoIzq = N a (n + 1) nuevoHijoIzq der
+    arbolTentativoDer = N a (n + 1) izq nuevoHijoDer
