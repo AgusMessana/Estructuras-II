@@ -90,3 +90,63 @@ insertar pNuevo = auxInsertar pNuevo 0
 -- =============================================================================
 -- # Ejercicio 4
 -- =============================================================================
+buscarMin :: (Punto p) => Int -> NdTree p -> p
+buscarMin _ Empty = error "No hay mínimo en un árbol vacío"
+buscarMin ejeBuscado (Node izq pNodo der ejeActual)
+  | ejeBuscado == ejeActual =
+      case izq of
+        Empty -> pNodo
+        _ -> buscarMin ejeBuscado izq
+  | otherwise =
+      let menorPunto p1 p2 =
+            if coord ejeBuscado p1 < coord ejeBuscado p2
+              then p1
+              else p2
+          candidatoIzq = case izq of
+            Empty -> pNodo
+            _ -> buscarMin ejeBuscado izq
+          candidatoDer = case der of
+            Empty -> pNodo
+            _ -> buscarMin ejeBuscado der
+       in menorPunto pNodo (menorPunto candidatoIzq candidatoDer)
+
+buscarMax :: (Punto p) => Int -> NdTree p -> p
+buscarMax _ Empty = error "No hay máximo en un árbol vacío"
+buscarMax ejeBuscado (Node izq pNodo der ejeActual)
+  | ejeBuscado == ejeActual =
+      case der of
+        Empty -> pNodo
+        _ -> buscarMax ejeBuscado der
+  | otherwise =
+      let mayorPunto p1 p2 =
+            if coord ejeBuscado p1 > coord ejeBuscado p2
+              then p1
+              else p2
+          candidatoIzq = case izq of
+            Empty -> pNodo
+            _ -> buscarMax ejeBuscado izq
+          candidatoDer = case der of
+            Empty -> pNodo
+            _ -> buscarMax ejeBuscado der
+       in mayorPunto pNodo (mayorPunto candidatoIzq candidatoDer)
+
+eliminar :: (Eq p, Punto p) => p -> NdTree p -> NdTree p
+eliminar _ Empty = Empty
+eliminar p (Node izq pNodo der ejeActual)
+  | p == pNodo =
+      case (izq, der) of
+        (Empty, Empty) -> Empty
+        (_, Empty) ->
+          let pReemplazo = buscarMax ejeActual izq
+           in Node (eliminar pReemplazo izq) pReemplazo der ejeActual
+        _ ->
+          let pReemplazo = buscarMin ejeActual der
+           in Node izq pReemplazo (eliminar pReemplazo der) ejeActual
+  | coord ejeActual p <= coord ejeActual pNodo =
+      Node (eliminar p izq) pNodo der ejeActual
+  | otherwise =
+      Node izq pNodo (eliminar p der) ejeActual
+
+-- =============================================================================
+-- # Ejercicio 5
+-- =============================================================================
