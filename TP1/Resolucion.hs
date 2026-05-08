@@ -150,3 +150,30 @@ eliminar p (Node izq pNodo der ejeActual)
 -- =============================================================================
 -- # Ejercicio 5
 -- =============================================================================
+type Rect = (Punto2d, Punto2d)
+
+-- ### Inciso a): crear una función que determina si un punto de dos dimensiones está dentro de un rectángulo.
+inRegion :: Punto2d -> Rect -> Bool
+inRegion p (pMin, pMax) =
+  coord 0 p >= coord 0 pMin
+    && coord 0 p <= coord 0 pMax
+    && coord 1 p >= coord 1 pMin
+    && coord 1 p <= coord 1 pMax
+
+-- ### Inciso b): crear una función que dado un conjunto s de puntos en el plano y un rectángulo, encuentre los puntos de s que están dentro del rectángulo dado
+ortogonalSearch :: NdTree Punto2d -> Rect -> [Punto2d]
+ortogonalSearch Empty _ = []
+ortogonalSearch (Node izq pNodo der ejeActual) rect@(pMin, pMax) =
+  let puntosAca =
+        if inRegion pNodo rect
+          then [pNodo]
+          else []
+      puntosIzq =
+        if coord ejeActual pMin <= coord ejeActual pNodo
+          then ortogonalSearch izq rect
+          else []
+      puntosDer =
+        if coord ejeActual pMax > coord ejeActual pNodo
+          then ortogonalSearch der rect
+          else []
+   in puntosAca ++ puntosIzq ++ puntosDer
