@@ -48,7 +48,7 @@ instance Punto Punto3d where
 -- # Ejercicio 2
 -- =============================================================================
 fromList :: (Punto p) => [p] -> NdTree p
-fromList puntos = auxFromList 0 puntos
+fromList = auxFromList 0 -- fromList puntos = auxFromList 0 puntos
 
 auxFromList :: (Punto p) => Int -> [p] -> NdTree p
 auxFromList _ [] = Empty
@@ -72,4 +72,21 @@ auxFromList nivel puntos = Node arbolIzq mediana arbolDer eje
 
 -- =============================================================================
 -- # Ejercicio 3
+-- =============================================================================
+insertar :: (Punto p) => p -> NdTree p -> NdTree p
+insertar pNuevo = auxInsertar pNuevo 0
+  where
+    n = dimension pNuevo
+
+    auxInsertar p ejeEsperado Empty = Node Empty p Empty ejeEsperado
+    auxInsertar p _ (Node izq pNodo der ejeActual)
+      | coord ejeActual p <= coord ejeActual pNodo =
+          Node (auxInsertar p nuevoEje izq) pNodo der ejeActual
+      | otherwise =
+          Node izq pNodo (auxInsertar p nuevoEje der) ejeActual
+      where
+        nuevoEje = (ejeActual + 1) `mod` n
+
+-- =============================================================================
+-- # Ejercicio 4
 -- =============================================================================
