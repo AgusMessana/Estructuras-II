@@ -2,6 +2,13 @@ module Resolucion where
 
 import Data.List (sortBy)
 
+{-
+Integrantes del grupo:
+\* Becerra, Nicolás
+\* Deppen, Nahuel
+\* Messana Gullielmi, Agustín
+-}
+
 -- Definición del árbol a utilizar
 data NdTree p
   = Node
@@ -19,15 +26,17 @@ class Punto p where
   dimension :: p -> Int -- devuelve el número de coordenadas de un punto
   coord :: Int -> p -> Double -- devuelve la coordenada k-ésima de un punto
   dist :: p -> p -> Double -- calcula la distancia entre dos puntos
+
+  -- A la distancia la hicimos sin la raíz porque el enunciado dice que sólo había que elevarlo al cuadrado
   dist p1 p2 = sum [(coord i p1 - coord i p2) ^ 2 | i <- [0 .. dimension p1 - 1]]
 
 -- ### Inciso a): definir la función que calcula la distancia entre dos puntos.
 -- Realizado dentro de la class Punto
 
 -- ### Inciso b): dar las instancias de Punto para Punto2d y Punto3d.
-newtype Punto2d = P2d (Double, Double)
+newtype Punto2d = P2d (Double, Double) deriving (Eq, Show)
 
-newtype Punto3d = P3d (Double, Double, Double)
+newtype Punto3d = P3d (Double, Double, Double) deriving (Eq, Show)
 
 instance Punto Punto2d where
   dimension _ = 2
