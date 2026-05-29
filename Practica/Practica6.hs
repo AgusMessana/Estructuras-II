@@ -224,3 +224,7 @@ Cuando el pivote es desbalanceado y divide los datos en proporciones asimétrica
 Por las propiedades de cambio de base, cualquier logaritmo difiere de otro únicamente por una constante multiplicativa. Como la notación O ignora esas constantes, la altura máxima de recursión sigue siendo O(log n)
 Aunque en la práctica la constante oculta haga que el algoritmo ejecute más pasos, a nivel teórico el orden de complejidad se mantiene intacto respecto al mejor caso. Para cualquier proporción constante (1 a 9 o 1 a 99), el Trabajo total será W ∈ O(n lg n) y la Profundidad será S ∈ O(log^3 n).
 -}
+
+-- =============================================================================
+-- Ejercicio 5
+-- =============================================================================
