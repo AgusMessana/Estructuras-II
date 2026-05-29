@@ -176,3 +176,51 @@ maxAll = mapReduce maxT max minBound
 -- =============================================================================
 -- # Ejercicio 4
 -- =============================================================================
+data T a = Em | N (T a) a (T a)
+
+altura :: T a -> Int
+altura Em = 0
+altura (N l x r) = 1 + max (altura l) (altura r)
+
+-- ### Inciso a)
+combinar :: T a -> T a -> T a
+combinar Em t2 = t2
+combinar (N l x r) t2 = N (combinar l r) x t2
+
+-- ### Inciso b)
+filterT :: (a -> Bool) -> T a -> T a
+filterT p Em = Em
+filterT p (N l x r)
+  | p x = N l' x r'
+  | otherwise = combinar l' r'
+  where
+    (l', r') = filterT p l ||| filterT p r
+
+-- ### Inciso c
+quicksortT :: T Int -> T Int
+quicksortT Em = Em
+quicksortT (N l x r) = N menores x mayores
+  where
+    resto = combinar l r
+    (menores, mayores) =
+      quicksortT (filterT (<= x) resto) ||| quicksortT (filterT (> x) resto)
+
+{-
+Para el peor caso, donde el árbol está totalmente desbalanceado, es decir, cuando d = n, vemos lo siguiente:
+Sabemos que el costo de la función filter es SfilterT(d) ∈ O(d^2) = O(n^2).
+Para la ecucaciónde recurrencia, tenemos que sumar el costo de la llamada recursiva más el costo de la partición actual. O sea:
+W(n) = W(n - 1) + n^2.
+Por lo tanto, concluímos que W(n) ∈ O(n^3).
+
+En el caso de estar perfectamente balanceado, tomando n la cantidad de nodos, tenemos que d = lg n.
+Para este caso, como sabemos que altura (filterT p t) <= altura t y en este caso d = lg n, el costo de aplicar filterT es (lg n)^2. Luego:
+S(n) = S(floor(n/2)) + (lg n)^2 ∈ O((lg n)^3)
+
+Por otro lado, el trabajo de chequear que cada elemento sea menor o mayor que x hace que la función tenga que pasar por todos los elementos. Luego, el trabajo de filtrado es O(n).
+Luego, W(n) = 2W(floor(n/2)) + n ∈ O(n lg n)
+
+Caso 1 a 9 o 1 a 99
+Cuando el pivote es desbalanceado y divide los datos en proporciones asimétricas (por ejemplo, enviando el 90% o el 99% a una de las ramas), el tamaño del problema en la rama más pesada decrece multiplicándose por una fracción constante (9/10 o 99/100). Esto genera un árbol de llamadas cuya altura está dada por un logaritmo con base distinta a 2, en estos casos puede ser en base 10/9 o 100/99.
+Por las propiedades de cambio de base, cualquier logaritmo difiere de otro únicamente por una constante multiplicativa. Como la notación O ignora esas constantes, la altura máxima de recursión sigue siendo O(log n)
+Aunque en la práctica la constante oculta haga que el algoritmo ejecute más pasos, a nivel teórico el orden de complejidad se mantiene intacto respecto al mejor caso. Para cualquier proporción constante (1 a 9 o 1 a 99), el Trabajo total será W ∈ O(n lg n) y la Profundidad será S ∈ O(log^3 n).
+-}
