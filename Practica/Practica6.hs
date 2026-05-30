@@ -228,3 +228,46 @@ Aunque en la práctica la constante oculta haga que el algoritmo ejecute más pa
 -- =============================================================================
 -- Ejercicio 5
 -- =============================================================================
+
+-- ### Inciso a)
+splitAt' :: BTree a -> Int -> (BTree a, BTree a)
+splitAt' Empty _ = (Empty, Empty)
+splitAt' arbol 0 = (Empty, arbol)
+splitAt' (Node t izq x der) i
+  | i == size izq = (izq, Node (t - size izq) Empty x der)
+  | i < size izq =
+      let (izq1, izq2) = splitAt' izq i
+       in (izq1, Node (t - i) izq2 x der)
+  | otherwise =
+      let (der1, der2) = splitAt' der (i - size izq - 1)
+       in (Node i izq x der1, der2)
+  where
+    size Empty = 0
+    size (Node t _ _ _) = t
+
+-- ### Inciso b)
+rebalance :: BTree a -> BTree a
+rebalance Empty = Empty
+rebalance arbol =
+  let n = size arbol
+      mid = n `div` 2
+      (mitadIzq, resto) = splitAt' arbol mid
+      (Node 1 Empty x Empty, mitadDer) = splitAt' resto 1
+      (izq, der) = rebalance mitadIzq ||| rebalance mitadDer
+   in Node n izq x der
+  where
+    size Empty = 0
+    size (Node t _ _ _) = t
+
+-- ### Inciso c)
+{-
+W_rebalance(n) = 2*W_rebalance(floor(n/2)) + lg(n) + O(1) ∈ O(n)
+S_rebalance(n) = S_rebalance(floor(n/2)) + lg(n) + O(1) ∈ O(lg^2(n))
+
+Sabemos que:
+W_merge(n) ∈ O(n)
+S_merge(n) ∈ O(lg^2 (n)) pues asumimos que los árboles están balanceados y tienen altura lg(n)
+
+W_msort(n) = 2*W_msort(floor(n/2)) + n ∈ O(n * lg(n))
+S_msort(n) = S_msort(floor(n/2)) + lg^2(n) ∈ O(lg^3(n))
+-}
