@@ -99,3 +99,74 @@ longestStreak val s =
       sUnida = append (drop 1 pref) (singleton tot)
       sTemps = map fst sUnida
    in reduce max 0 sTemps
+--------------------------------------------------------------------------------
+-- =============================================================================
+-- Parcial viejo: 12 / 06 / 2024
+-- =============================================================================
+
+-- =============================================================================
+-- # Ejercicio 1
+-- =============================================================================
+data MultiDick k v = E | N (MultiDick k v) (k, Tree'' v) (MultiDick k v) deriving Show
+data Tree'' a = Empty | Leaf a | Node Int (Tree'' a) (Tree'' a) deriving Show
+
+-- =============================================================================
+-- ### Inciso i
+-- =============================================================================
+isValue :: (Ord k, Eq v) => k -> v -> MultiDick k v -> Bool
+isValue _ _ E = False
+isValue k v (N izq (k', arbol) der)
+  | k < k' = isValue k v izq
+  | k > k' = isValue k v der
+  | otherwise = search v arbol
+
+search :: Eq v => v -> Tree'' v -> Bool
+search _ Empty = False
+search v (Leaf x) = v == x
+search v (Node _ izq der) = let (inIzq, inDer) = search v izq ||| search v der
+                             in (inIzq || inDer)
+
+-- =============================================================================
+-- ### Inciso b
+-- =============================================================================
+toMap :: Ord k => MultiDick k v -> Tree'' (k, Int, v)
+toMap E = Empty
+toMap (N izq (k, arbol) der) =
+  let (izq', der') = toMap izq ||| toMap der
+      raiz = numerar k arbol 0
+   in join'' (join'' izq' raiz) der' 
+       
+
+numerar :: Ord k => k -> Tree'' v -> Int -> Tree'' (k, Int, v)
+numerar _ Empty _ = Empty
+numerar k (Leaf v) i = Leaf (k, i, v)
+numerar k (Node t izq der) i =
+  let (izq', der') = numerar k izq i ||| numerar k der (size'' izq + i)
+   in Node t izq' der'
+
+size'' :: Tree'' v -> Int
+size'' Empty = 0
+size'' (Leaf _) = 1
+size'' (Node t _ _) = t
+
+join'' :: Tree'' v -> Tree'' v -> Tree'' v
+join'' Empty t2 = t2
+join'' t1 Empty = t1
+join'' t1 t2 = Node (size'' t1 + size'' t2) t1 t2
+
+-- =============================================================================
+-- # Ejercicio 2
+-- =============================================================================
+f :: Int -> (Int, Int, Int, Int)
+f d = (1, 1, d, d)
+
+g :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
+g (s1, t1, p1, u1) (s2, t2, p2, u2) = (s, t, p, u)
+  where
+    s = if (s2 /= t2) || (u1 /= p2) then s2 else s2 + s1
+    t = t1 + t2
+    p = p1
+    u = u2
+
+h :: (Int, Int, Int, Int) -> Int
+h (s, _, _, _) = s
