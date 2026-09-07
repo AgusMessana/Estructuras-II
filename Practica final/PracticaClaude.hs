@@ -186,3 +186,199 @@ picosDeConsumo s
           (nth s (i+1) > nth s i && nth s (i+1) > nth s (i+2), i+1)) (n - 2)
         filtrados = filter fst verVecinos
      in map snd filtrados
+
+{-
+# Ejercicio 8
+Una fábrica registra la producción diaria de una máquina. Se quiere saber cuántos días llevó la máquina funcionando sin fallas desde el inicio del registro: o sea, la cantidad de días iniciales consecutivos en los que la producción fue mayor a 0, hasta el primer día con producción 0.
+
+diasSinFallaInicial : Seq Int → Int
+diasSinFallaInicial ⟨5, 8, 3, 0, 7, 2⟩ = 3
+diasSinFallaInicial ⟨0, 4, 5⟩ = 0
+diasSinFallaInicial ⟨6, 6, 6⟩ = 3
+diasSinFallaInicial ⟨⟩ = 0
+
+Profundidad O(lg n).
+-}
+diasSinFallaInicial :: Seq Int -> Int
+diasSinFallaInicial s =
+  let n = length s
+      indexS = tabulate (\i -> (nth s i, i)) n
+      filtrada = filter (\(v, _) -> v == 0) indexS
+   in if length filtrada == 0 then n else snd (nth filtrada 0)
+
+{-
+# Ejercicio 9
+Un servidor registra el tiempo de respuesta (en ms) de cada consulta que atendió. Se quiere saber cuántas consultas seguidas al final del registro tuvieron un tiempo de respuesta menor a 200 ms — o sea, cuántas consultas lleva el servidor respondiendo rápido hasta el momento actual.
+
+consultasRapidasFinales : Seq Int → Int
+consultasRapidasFinales ⟨150, 300, 180, 120, 90⟩ = 3
+consultasRapidasFinales ⟨100, 120, 400⟩ = 0
+consultasRapidasFinales ⟨50, 60, 70⟩ = 3
+consultasRapidasFinales ⟨⟩ = 0
+
+Profundidad O(lg n).
+-}
+consultasRapidasFinales :: Seq Int -> Int
+consultasRapidasFinales s =
+  let n = length s
+      reversedS = reverseS s
+      indexS = tabulate (\i -> (nth reversedS i, i)) n
+      filtrada = filter (\(v, _) -> v >= 200) indexS
+   in if length filtrada == 0 then n else snd (nth filtrada 0)
+
+reverseS :: Seq a -> Seq a
+reverseS s =
+  let n = length s
+   in tabulate (\i -> nth s (n - i - 1)) n
+
+{-
+# Ejercicio 10
+Un embalse registra el nivel de agua cada semana. Para cada semana, se quiere saber cuántas semanas faltan hasta que el nivel vuelva a ser al menos tan alto como el actual. Si nunca vuelve a alcanzarlo, se devuelve 0.
+
+semanasHastaRecuperar : Seq Int → Seq Int
+semanasHastaRecuperar ⟨5, 3, 4, 6, 2⟩ = ⟨3, 1, 1, 0, 0⟩
+(Desde la semana 0 con nivel 5, hay que esperar 3 semanas hasta el 6. Desde la 1 con nivel 3, una semana hasta el 4.)
+
+Profundidad O(lg n)... y pensá si eso es alcanzable. Si concluís que no, decime por qué y resolvelo con la mejor profundidad que puedas justificar.
+-}
+semanasHastaRecuperar :: Seq Int -> Seq Int
+semanasHastaRecuperar s =
+  let n = length s
+  in tabulate (\i -> primeraQueAlcanza (nth s i) (drop s (i+1))) n
+
+primeraQueAlcanza :: Int -> Seq Int -> Int
+primeraQueAlcanza val s = 
+  let n = length s
+      indexS = tabulate (\i -> (nth s i, i)) n
+      filtrada = filter (\(v, _) -> v >= val) indexS
+   in if length filtrada == 0 then 0 else snd (nth filtrada 0) + 1
+
+
+{-
+# Ejercicio 11
+Una app de finanzas registra los movimientos de una cuenta (positivos son ingresos, negativos son gastos). Se quiere saber si la cuenta estuvo en descubierto en algún momento, y de ser así, cuál fue el saldo más negativo al que llegó. Si nunca estuvo en descubierto, devolver 0.
+
+peorDescubierto : Seq Float → Float
+peorDescubierto ⟨100, -30, -90, 50⟩ = -20.0
+peorDescubierto ⟨100, -30, 20⟩ = 0.0
+
+Profundidad O(lg n).
+-}
+peorDescubierto :: Seq Float -> Float
+peorDescubierto s =
+  let (prefs, ult) = scan (+) 0.0 s
+      vals = append (drop prefs 1) (singleton ult)
+      rta = reduce min (1/0) vals
+   in if rta >= 0 then 0 else rta
+
+{-
+# Ejercicio 12
+Un torneo de ajedrez registra los resultados de un jugador partida por partida: 1 si ganó, 0 si empató, -1 si perdió. Se quiere saber la mayor cantidad de partidas consecutivas sin perder (o sea, ganando o empatando).
+
+mayorInvicto : Seq Int → Int
+mayorInvicto ⟨1, 0, 1, -1, 0, 0, 1, 1, -1⟩ = 4
+mayorInvicto ⟨-1, -1⟩ = 0
+mayorInvicto ⟨1, 1, 1⟩ = 3
+
+Profundidad O(lg n).
+-}
+combine3 :: (Int, Int) -> (Int, Int) -> (Int, Int)
+combine3 (s1, t1) (s2, t2) = (s, t)
+  where
+    s = if s2 /= t2 then s2 else s1 + s2
+    t = t1 + t2
+
+base3 :: Int -> (Int, Int)
+base3 r = if r < 0 then (0, 1) else (1, 1)
+
+mayorInvicto :: Seq Int -> Int
+mayorInvicto s =
+  let tuplas = map base3 s
+      (prefs, ult) = scan combine3 (0, 0) tuplas
+      unida = append (drop prefs 1) (singleton ult)
+      sufijos = map fst unida
+   in reduce max 0 sufijos
+
+{-
+# Ejercicio 13
+splitAtT :: Int -> TreeA a -> (TreeA a, TreeA a), que dado un natural n y una secuencia s, devuelva el par formado por los últimos n elementos de s y el resto (o sea, parte por el final en vez de por el principio).
+
+Por ejemplo, si s = ⟨x0, x1, x2, x3, x4⟩:
+splitAtT 2 s = (⟨x3, x4⟩, ⟨x0, x1, x2⟩)
+
+Definir splitAtT con profundidad en O(h), donde h es la altura del árbol.
+-}
+data TreeA a = EA | NA Int (TreeA a) a (TreeA a)
+
+splitAtT :: Int -> TreeA a -> (TreeA a, TreeA a)
+splitAtT _ EA = (EA, EA)
+splitAtT 0 arbol = (EA, arbol)
+splitAtT n (NA t izq x der)
+  | n <= sizeA der = 
+    let (ultimos, resto) = splitAtT n der
+     in (ultimos, NA (sizeA izq + sizeA resto + 1) izq x resto)
+  | otherwise =
+    let r = n - sizeA der - 1
+        (ultIzq, restoIzq) = splitAtT r izq
+     in (NA (sizeA der + 1 + sizeA ultIzq) ultIzq x der, restoIzq)
+
+sizeA :: TreeA a -> Int
+sizeA EA = 0
+sizeA (NA t _ _ _) = t
+
+{-
+# Ejercicio 14
+Se representan secuencias mediante árboles binarios:
+data TreeB a = EB | NB Int (TreeB a) a (TreeB a), donde el Int guarda la longitud de la secuencia y el recorrido inorder da el orden de los elementos.
+
+Definir en Haskell de manera eficiente
+updateAt :: Int -> a -> TreeB a -> TreeB a, que dado un índice i, un valor v y una secuencia s, devuelva la secuencia resultante de reemplazar el elemento en la posición i por v. Si i no es un índice válido, devolver s sin cambios.
+
+Por ejemplo, con s = ⟨10, 20, 30, 40, 50⟩:
+updateAt 2 99 s = ⟨10, 20, 99, 40, 50⟩
+updateAt 0 99 s = ⟨99, 20, 30, 40, 50⟩
+updateAt 7 99 s = ⟨10, 20, 30, 40, 50⟩
+
+Profundidad O(h).
+-}
+data TreeB a = EB | NB Int (TreeB a) a (TreeB a)
+
+updateAt :: Int -> a -> TreeB a -> TreeB a
+updateAt _ _ EB = EB
+updateAt i val (NB t izq x der)
+  | i < sizeB izq  = NB t (updateAt i val izq) x der
+  | i == sizeB izq = NB t izq val der
+  | otherwise      = NB t izq x (updateAt (i - sizeB izq - 1) val der)
+
+sizeB :: TreeB a -> Int
+sizeB EB = 0
+sizeB (NB t _ _ _) = t
+
+{-
+# Ejercicio 15
+El Int guarda la longitud de la secuencia, el inorder da el orden de los elementos.
+
+Definir de manera eficiente:
+countT :: (a -> Bool) -> TreeC a -> Int, que dado un predicado p y una secuencia s, devuelva cuántos elementos de s satisfacen p.
+
+countT even ⟨3, 8, 5, 2, 7, 4⟩ = 3
+countT (>10) ⟨3, 8, 5⟩ = 0
+
+Profundidad O(h), trabajo O(n). Plantear las recurrencias.
+-}
+data TreeC a = EC | NC Int (TreeC a) a (TreeC a)
+
+countT :: (a -> Bool) -> TreeC a -> Int
+countT _ EC = 0
+countT p (NC _ izq x der) =
+  let (siIzq, siDer) = countT p izq ||| countT p der
+   in if p x then siIzq + siDer + 1 else siIzq + siDer
+
+(|||) :: a -> b -> (a, b)
+a ||| b = (a, b)
+
+{-
+W(h) = 2·W(h-1) + c0 \in O(2^h) = O(n) con n = 2^h
+S(h) = S(h-1) + c1 \in O(h)
+-}
+
