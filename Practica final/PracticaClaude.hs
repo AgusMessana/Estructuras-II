@@ -181,11 +181,15 @@ picosDeConsumo :: Seq Int -> Seq Int
 picosDeConsumo s
   | length s <= 2 = emptyS
   | otherwise =
-    let n = length s
-        verVecinos = tabulate (\i -> 
-          (nth s (i+1) > nth s i && nth s (i+1) > nth s (i+2), i+1)) (n - 2)
-        filtrados = filter fst verVecinos
-     in map snd filtrados
+      let n = length s
+          verVecinos =
+            tabulate
+              ( \i ->
+                  (nth s (i + 1) > nth s i && nth s (i + 1) > nth s (i + 2), i + 1)
+              )
+              (n - 2)
+          filtrados = filter fst verVecinos
+       in map snd filtrados
 
 {-
 # Ejercicio 8
@@ -244,15 +248,14 @@ Profundidad O(lg n)... y pensá si eso es alcanzable. Si concluís que no, decim
 semanasHastaRecuperar :: Seq Int -> Seq Int
 semanasHastaRecuperar s =
   let n = length s
-  in tabulate (\i -> primeraQueAlcanza (nth s i) (drop s (i+1))) n
+   in tabulate (\i -> primeraQueAlcanza (nth s i) (drop s (i + 1))) n
 
 primeraQueAlcanza :: Int -> Seq Int -> Int
-primeraQueAlcanza val s = 
+primeraQueAlcanza val s =
   let n = length s
       indexS = tabulate (\i -> (nth s i, i)) n
       filtrada = filter (\(v, _) -> v >= val) indexS
    in if length filtrada == 0 then 0 else snd (nth filtrada 0) + 1
-
 
 {-
 # Ejercicio 11
@@ -268,7 +271,7 @@ peorDescubierto :: Seq Float -> Float
 peorDescubierto s =
   let (prefs, ult) = scan (+) 0.0 s
       vals = append (drop prefs 1) (singleton ult)
-      rta = reduce min (1/0) vals
+      rta = reduce min (1 / 0) vals
    in if rta >= 0 then 0 else rta
 
 {-
@@ -314,13 +317,13 @@ splitAtT :: Int -> TreeA a -> (TreeA a, TreeA a)
 splitAtT _ EA = (EA, EA)
 splitAtT 0 arbol = (EA, arbol)
 splitAtT n (NA t izq x der)
-  | n <= sizeA der = 
-    let (ultimos, resto) = splitAtT n der
-     in (ultimos, NA (sizeA izq + sizeA resto + 1) izq x resto)
+  | n <= sizeA der =
+      let (ultimos, resto) = splitAtT n der
+       in (ultimos, NA (sizeA izq + sizeA resto + 1) izq x resto)
   | otherwise =
-    let r = n - sizeA der - 1
-        (ultIzq, restoIzq) = splitAtT r izq
-     in (NA (sizeA der + 1 + sizeA ultIzq) ultIzq x der, restoIzq)
+      let r = n - sizeA der - 1
+          (ultIzq, restoIzq) = splitAtT r izq
+       in (NA (sizeA der + 1 + sizeA ultIzq) ultIzq x der, restoIzq)
 
 sizeA :: TreeA a -> Int
 sizeA EA = 0
@@ -346,9 +349,9 @@ data TreeB a = EB | NB Int (TreeB a) a (TreeB a)
 updateAt :: Int -> a -> TreeB a -> TreeB a
 updateAt _ _ EB = EB
 updateAt i val (NB t izq x der)
-  | i < sizeB izq  = NB t (updateAt i val izq) x der
+  | i < sizeB izq = NB t (updateAt i val izq) x der
   | i == sizeB izq = NB t izq val der
-  | otherwise      = NB t izq x (updateAt (i - sizeB izq - 1) val der)
+  | otherwise = NB t izq x (updateAt (i - sizeB izq - 1) val der)
 
 sizeB :: TreeB a -> Int
 sizeB EB = 0
@@ -382,3 +385,299 @@ W(h) = 2·W(h-1) + c0 \in O(2^h) = O(n) con n = 2^h
 S(h) = S(h-1) + c1 \in O(h)
 -}
 
+{-
+# Ejercicio 16
+data TreeD a = ED | ND Int (TreeD a) a (TreeD a)
+El Int guarda la longitud de la secuencia, el inorder da el orden de los elementos.
+
+Definir de manera eficiente:
+insertAt :: Int -> a -> TreeD a -> TreeD a, que dado un índice i, un valor v y una secuencia s, devuelva la secuencia resultante de insertar v en la posición i, corriendo un lugar a los elementos que estaban desde i en adelante. Si i es igual a la longitud, el elemento va al final. Podés asumir que 0 <= i <= |s|.
+
+Por ejemplo, con s = ⟨10, 20, 30⟩:
+insertAt 0 99 s = ⟨99, 10, 20, 30⟩
+insertAt 2 99 s = ⟨10, 20, 99, 30⟩
+insertAt 3 99 s = ⟨10, 20, 30, 99⟩
+
+Profundidad O(h).
+-}
+data TreeD a = ED | ND Int (TreeD a) a (TreeD a)
+
+insertAt :: Int -> a -> TreeD a -> TreeD a
+insertAt _ val ED = ND 1 ED val ED
+insertAt ind val arbol@(ND t izq x der)
+  | ind <= sizeD izq = ND (t + 1) (insertAt ind val izq) x der
+  | otherwise = ND (t + 1) izq x (insertAt (ind - sizeD izq - 1) val der)
+
+sizeD :: TreeD a -> Int
+sizeD ED = 0
+sizeD (ND t _ _ _) = t
+
+{-
+# Ejercicio 17
+data TreeE a = EE | NE Int (TreeE a) a (TreeE a)
+El Int guarda la longitud, el inorder da el orden de los elementos.
+
+Definir de manera eficiente:
+partitionT :: (a -> Bool) -> TreeE a -> (TreeE a, TreeE a), que dado un predicado p y una secuencia s, devuelva un par de secuencias: la primera con los elementos que satisfacen p y la segunda con los que no, respetando el orden original en ambas.
+
+partitionT even ⟨3, 8, 5, 2, 7, 4⟩ = (⟨8, 2, 4⟩, ⟨3, 5, 7⟩)
+
+Profundidad O(h).
+-}
+data TreeE a = EE | NE Int (TreeE a) a (TreeE a)
+
+particionT :: (a -> Bool) -> TreeE a -> (TreeE a, TreeE a)
+particionT _ EE = (EE, EE)
+particionT p (NE t izq x der) =
+  let ((tIzq, fIzq), (tDer, fDer)) = particionT p izq ||| particionT p der
+   in if p x
+        then (NE (sizeE tIzq + sizeE tDer + 1) tIzq x tDer, join fIzq fDer)
+        else (join tIzq tDer, NE (sizeE fIzq + sizeE fDer + 1) fIzq x fDer)
+
+join :: TreeE a -> TreeE a -> TreeE a
+join EE t2 = t2
+join t1 EE = t1
+join t1 t2 =
+  let newSize = sizeE t1 + sizeE t2
+      (raiz, resto) = ultimoYRestoE t1
+   in NE newSize resto raiz t2
+
+ultimoYRestoE :: TreeE a -> (a, TreeE a)
+ultimoYRestoE (NE _ izq x EE) = (x, izq)
+ultimoYRestoE (NE t izq x der) =
+  let (u, resto) = ultimoYRestoE der
+   in (u, NE (t - 1) izq x resto)
+
+sizeE :: TreeE a -> Int
+sizeE EE = 0
+sizeE (NE t _ _ _) = t
+
+{-
+# Ejercicio 18
+data TreeF a = EF | NF Int (TreeF a) a (TreeF a)
+
+Definir de manera eficiente:
+nthT :: TreeF a -> Int -> a, que devuelva el elemento en la posición i del inorder. Podés asumir que i es un índice válido.
+
+nthT ⟨10,20,30,40,50⟩ 0 = 10
+nthT ⟨10,20,30,40,50⟩ 2 = 30
+nthT ⟨10,20,30,40,50⟩ 4 = 50
+
+Profundidad O(h).
+-}
+data TreeF a = EF | NF Int (TreeF a) a (TreeF a)
+
+nthT :: TreeF a -> Int -> a
+nthT arbol pos = nthTAux arbol pos 0
+
+nthTAux :: TreeF a -> Int -> Int -> a
+nthTAux (NF t izq x der) pos ind
+  | pos == ind + sizeF izq = x
+  | pos < ind + sizeF izq = nthTAux izq pos ind
+  | otherwise = nthTAux der pos (ind + sizeF izq + 1)
+
+sizeF :: TreeF a -> Int
+sizeF EF = 0
+sizeF (NF t _ _ _) = t
+
+{-
+# Ejercicio 19
+data TreeG a = EG | NG Int (TreeG a) a (TreeG a)
+El Int guarda la longitud, el inorder da el orden.
+
+Definir de manera eficiente:
+deleteAt :: Int -> TreeG a -> TreeG a, que dado un índice i y una secuencia s, devuelva la secuencia sin el elemento de la posición i. Si i no es válido, devolver s sin cambios.
+
+deleteAt 0 ⟨10,20,30,40,50⟩ = ⟨20,30,40,50⟩
+deleteAt 2 ⟨10,20,30,40,50⟩ = ⟨10,20,40,50⟩
+deleteAt 4 ⟨10,20,30,40,50⟩ = ⟨10,20,30,40⟩
+deleteAt 9 ⟨10,20,30,40,50⟩ = ⟨10,20,30,40,50⟩
+
+Profundidad O(h).
+-}
+data TreeG a = EG | NG Int (TreeG a) a (TreeG a)
+
+deleteAt :: Int -> TreeG a -> TreeG a
+deleteAt pos arbol = deleteAtAux pos arbol 0
+
+deleteAtAux :: Int -> TreeG a -> Int -> TreeG a
+deleteAtAux _ EG _ = EG
+deleteAtAux pos (NG t izq x der) ind
+  | pos < ind + sizeG izq = NG (t - 1) (deleteAtAux pos izq ind) x der
+  | pos > ind + sizeG izq = NG (t - 1) izq x (deleteAtAux pos der (ind + sizeG izq + 1))
+  | otherwise = case (izq, der) of
+      (EG, _) -> der
+      (_, EG) -> izq
+      _ ->
+        let (u, izq') = ultimoYRestoG izq
+         in NG (t - 1) izq' u der
+
+sizeG :: TreeG a -> Int
+sizeG EG = 0
+sizeG (NG t _ _ _) = t
+
+ultimoYRestoG :: TreeG a -> (a, TreeG a)
+ultimoYRestoG (NG _ izq x EG) = (x, izq)
+ultimoYRestoG (NG t izq x der) =
+  let (u, der') = ultimoYRestoG der
+   in (u, NG (t - 1) izq x der')
+
+{-
+# Ejercicio 20
+data TreeH a = EH | NH Int (TreeH a) a (TreeH a)
+
+Definir de manera eficiente:
+splitWhen :: (a -> Bool) -> TreeH a -> (TreeH a, TreeH a), que dado un predicado p y una secuencia s, devuelva el par formado por el prefijo más largo de s cuyos elementos no satisfacen p, y el resto (que empieza en el primer elemento que sí satisface p).
+
+splitWhen even ⟨3, 5, 8, 1, 4⟩ = (⟨3, 5⟩, ⟨8, 1, 4⟩)
+splitWhen even ⟨2, 3, 5⟩ = (⟨⟩, ⟨2, 3, 5⟩)
+splitWhen even ⟨1, 3, 5⟩ = (⟨1, 3, 5⟩, ⟨⟩)
+
+Profundidad O(h).
+-}
+data TreeH a = EH | NH Int (TreeH a) a (TreeH a)
+
+splitWhen :: (a -> Bool) -> TreeH a -> (TreeH a, TreeH a)
+splitWhen _ EH = (EH, EH)
+splitWhen p (NH t izq x der)
+  | sizeH nIzq < sizeH izq = (nIzq, NH (sizeH sIzq + 1 + sizeH der) sIzq x der)
+  | p x = (izq, NH (1 + sizeH sDer) EH x der)
+  | otherwise = (NH (sizeH izq + 1 + sizeH nDer) izq x nDer, sDer)
+  where
+    ((nIzq, sIzq), (nDer, sDer)) = splitWhen p izq ||| splitWhen p der
+
+sizeH :: TreeH a -> Int
+sizeH EH = 0
+sizeH (NH t _ _ _) = t
+
+{-
+# Ejercicio 21
+data TreeI a = EI | NI Int (TreeI a) a (TreeI a)
+El Int guarda la longitud, el inorder da el orden de los elementos.
+
+Definir de manera eficiente:
+takeSuffix :: (a -> Bool) -> TreeI a -> TreeI a, que dado un predicado p y una secuencia s, devuelva el sufijo más largo de s cuyos elementos satisfacen p.
+
+takeSuffix even ⟨3, 7, 4, 8, 6⟩ = ⟨4, 8, 6⟩
+takeSuffix even ⟨2, 4, 6⟩ = ⟨2, 4, 6⟩
+takeSuffix even ⟨4, 6, 3⟩ = ⟨⟩
+
+Profundidad O(h).
+-}
+data TreeI a = EI | NI Int (TreeI a) a (TreeI a)
+
+takeSuffix :: (a -> Bool) -> TreeI a -> TreeI a
+takeSuffix _ EI = EI
+takeSuffix p (NI t izq x der)
+  | sizeI der' < sizeI der = der'
+  | p x = NI (sizeI der + 1 + sizeI izq') izq' x der
+  | otherwise = der
+  where
+    (izq', der') = takeSuffix p izq ||| takeSuffix p der
+
+sizeI :: TreeI a -> Int
+sizeI EI = 0
+sizeI (NI t _ _ _) = t
+
+{-
+# Ejercicio 22
+data TreeJ a = EJ | NJ Int (TreeJ a) a (TreeJ a)
+
+Definir de manera eficiente:
+rotar :: Int -> TreeJ a -> TreeJ a, que dado un natural k y una secuencia s, devuelva la secuencia rotada k posiciones a la izquierda: los primeros k elementos pasan al final, en el mismo orden.
+
+rotar 2 ⟨10,20,30,40,50⟩ = ⟨30,40,50,10,20⟩
+rotar 0 ⟨10,20,30⟩ = ⟨10,20,30⟩
+rotar 3 ⟨10,20,30⟩ = ⟨10,20,30⟩
+
+Podés asumir 0 <= k <= |s|. Profundidad O(h).
+-}
+data TreeJ a = EJ | NJ Int (TreeJ a) a (TreeJ a)
+
+rotar :: Int -> TreeJ a -> TreeJ a
+rotar 0 arbol = arbol
+rotar _ EJ = EJ
+rotar k arbol =
+  let (primeros, resto) = divideJ k arbol
+   in joinJ resto primeros
+
+divideJ :: Int -> TreeJ a -> (TreeJ a, TreeJ a)
+divideJ _ EJ = (EJ, EJ)
+divideJ 0 arbol = (EJ, arbol)
+divideJ n (NJ t izq x der)
+  | n <= sizeJ izq =
+      let (a, b) = divideJ n izq
+       in (a, NJ (sizeJ b + 1 + sizeJ der) b x der)
+  | otherwise =
+      let (a, b) = divideJ (n - sizeJ izq - 1) der
+       in (NJ (sizeJ izq + 1 + sizeJ a) izq x a, b)
+
+joinJ :: TreeJ a -> TreeJ a -> TreeJ a
+joinJ t1 EJ = t1
+joinJ EJ t2 = t2
+joinJ t1 t2 =
+  let (u, t1') = ultimoYRestoJ t1
+   in NJ (sizeJ t1 + sizeJ t2) t1' u t2
+
+ultimoYRestoJ :: TreeJ a -> (a, TreeJ a)
+ultimoYRestoJ (NJ _ izq x EJ) = (x, izq)
+ultimoYRestoJ (NJ t izq x der) =
+  let (u, resto) = ultimoYRestoJ der
+   in (u, NJ (t - 1) izq x resto)
+
+sizeJ :: TreeJ a -> Int
+sizeJ EJ = 0
+sizeJ (NJ t _ _ _) = t
+
+{-
+# Ejercicio 23
+data TreeK a = EK | LK a | NK Int (TreeK a) (TreeK a)
+Los elementos están en las hojas, el Int guarda la cantidad de elementos del subárbol, y el recorrido de izquierda a derecha da el orden de la secuencia.
+
+Definir de manera eficiente:
+zipT :: TreeK a -> TreeK b -> TreeK (a, b), que dadas dos secuencias s y s', devuelva la secuencia de pares formada apareando los elementos de misma posición. El resultado tiene longitud min |s| |s'| — los elementos sobrantes de la más larga se descartan.
+
+zipT ⟨1,2,3,4⟩ ⟨'a','b','c'⟩ = ⟨(1,'a'), (2,'b'), (3,'c')⟩
+zipT ⟨1,2⟩ ⟨'a','b','c','d'⟩ = ⟨(1,'a'), (2,'b')⟩
+
+Profundidad O(h) cuando los árboles tienen la misma estructura. Plantear las recurrencias para ese caso.
+-}
+data TreeK a = EK | LK a | NK Int (TreeK a) (TreeK a)
+
+zipT :: TreeK a -> TreeK b -> TreeK (a, b)
+zipT EK _ = EK
+zipT _ EK = EK
+zipT (LK x) t = LK (x, primT t)
+zipT t (LK x) = LK (primT t, x)
+zipT (NK t izq der) t2 =
+  let (a, b) = divideK (sizeK izq) t2
+      (r1, r2) = zipT izq a ||| zipT der b
+   in joinK r1 r2
+
+primT :: TreeK a -> a
+primT (LK x) = x
+primT (NK _ EK der) = primT der
+primT (NK _ izq der) = primT izq
+
+divideK :: Int -> TreeK a -> (TreeK a, TreeK a)
+divideK _ EK = (EK, EK)
+divideK 0 t = (EK, t)
+divideK _ (LK x) = (LK x, EK)
+divideK n t | n >= sizeK t = (t, EK)
+divideK n (NK t izq der)
+  | n <= sizeK izq =
+      let (a, b) = divideK n izq
+       in (a, joinK b der)
+  | otherwise =
+      let (a, b) = divideK (n - sizeK izq) der
+       in (joinK izq a, b)
+
+joinK :: TreeK a -> TreeK a -> TreeK a
+joinK EK t2 = t2
+joinK t1 EK = t1
+joinK t1 t2 = NK (sizeK t1 + sizeK t2) t1 t2
+
+sizeK :: TreeK a -> Int
+sizeK EK = 0
+sizeK (LK _) = 1
+sizeK (NK t _ _) = t
